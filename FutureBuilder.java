@@ -5,14 +5,21 @@ import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
 import java.util.Random;  
 
-
 Scanner inputter = new Scanner(System.in);
+
 class Offers {
     Company comp;
-    int CTC;
+    double CTC;
     Student stu;
     int accepted = 0;
+    void Offers(Company comp, double CTC, Student stu){
+        this.comp = comp;
+        this.stu = stu;
+        this.CTC = CTC;
+        PlacementCell.totalOffers.add(this);
+    }
 }
+
 class Student {
     static int numberofStudents = 0;
     static public List<Student> students = new ArrayList<Students>;
@@ -101,6 +108,7 @@ class Student {
 
     }
 }
+
 class Company {
     static int numberOfCompanies = 0;
     static public List<Company> companies = new ArrayList<Company>;
@@ -136,17 +144,18 @@ class Company {
         return random.nextBoolean();  
     }
 
-    void selectedStudents(){
+    void selectStudents(){
         if(PlacementCell.studentsOpen == 0){
             this.selectedStudents = this.registeredStudents.removeIf(s -> arOffer(s.comp));
             if(len(this.selectedStudents == 0)){
                 this.selectedStudents.add(registeredStudents.get(0));
             }
+            this.selectedStudents.forEach(s => s.Offers.add(new Offer(this, this.package, s)))
         }
     }
 
     void getSelectedStudents(){
-        selectedStudents.print();
+        selectedStudents.forEach(s => s.printer());
     }
     void updateCGPA(double cgpa){
         this.cgpaCriteria = cgpa;
@@ -173,6 +182,7 @@ class Company {
         return false;
     }
 }
+
 class PlacementCell {
     static List<Offers> totalOffers = new ArrayList<Offers>;
     static int companyOpen = 0;
@@ -216,6 +226,7 @@ class PlacementCell {
     static public void getCompanyProcessResults(String companyName){}
 
 }
+
 class FutureBuilder {
     public static void main(String[] args) {
         mainApplication();
