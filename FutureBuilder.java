@@ -19,6 +19,11 @@ class Offers {
         this.CTC = CTC;
         PlacementCell.totalOffers.add(this);
     }
+    void printer(){
+        System.out.println("Offered By: " this.comp.name);
+        System.out.println("Package: " this.ctc);
+        System.out.println("Role: " this.comp.role);
+    }
 }
 
 class Student {
@@ -75,7 +80,7 @@ class Student {
     public void getCurrentStatus(){
         System.out.println("Student Status: " + status);
         if(status == "offered"){
-            this.companyOffered.print();
+            this.rcvdOffers.get(rcvdOffers.size()-1).printer();
             System.out.println("Please accept the offer");
         }
     }
@@ -83,9 +88,6 @@ class Student {
         this.pendingCGPAUpdate = newCGPA;
         PlacementCell.pendingStudentCGPAChanges = this;
         PlacementCell.changeStudentCGPA();
-    }
-    private void arOffer(Company comp){
-
     }
     public void reject(){
         Offer off = rcvdOffers.get(rcvdOffers.size() -1);
