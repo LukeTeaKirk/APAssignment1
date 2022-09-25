@@ -10,6 +10,8 @@ Scanner inputter = new Scanner(System.in);
 class Offers {
     Company comp;
     int CTC;
+    Student stu;
+    int accepted = 0;
 }
 class Student {
     static int numberofStudents = 0;
@@ -27,7 +29,13 @@ class Student {
     int currentHighestCTC = 0;
     int numberOfOffers = 0;
     LocalDateTime registerDateTime;
+    void printer(){
+        System.out.println("Student Name = " + this.name);
+        System.out.println("Student rollNo = " + this.rollNo);
+        System.out.println("Student cgpa = " + this.cgpa);
+        System.out.println("Student branch = " + this.branch);
 
+    }
     void Student(int roll, String name, int cgpa, String branch){
         this.rollNo = roll;
         this.name = name;
@@ -151,7 +159,12 @@ class Company {
     void updateRole(String role){
         this.role = role;
     }
-    void print(){}
+    void printer(){
+        System.out.println("Company Name = " + this.name);
+        System.out.println("Company Package = " + this.package);
+        System.out.println("Company CgpaCriteria = " + this.cgpaCriteria);
+        System.out.println("Company Role = " + this.role);
+    }
 
     void checkConditions(Student stu){
         if(stu.cgpa >= this.cgpaCriteria && stu.status != "placed" && this.package >= 3*stu.currentHighestCTC){
@@ -161,25 +174,26 @@ class Company {
     }
 }
 class PlacementCell {
-    int companyOpen = 0;
-    int studentsOpen = 0;
-    static public Student pendingStudentCGPAChanges;
-    LocalDateTime companyRegisterDeadline;
-    LocalDateTime studentRegisterDeadline;
-    List<Student> registeredStudents = new ArrayList<Student>;
-    List<Company> registeredCompanies = new ArrayList<Company>;
-    public void changeStudentCGPA(){
+    static List<Offers> totalOffers = new ArrayList<Offers>;
+    static int companyOpen = 0;
+    static int studentsOpen = 0;
+    static Student pendingStudentCGPAChanges;
+    static LocalDateTime companyRegisterDeadline;
+    static LocalDateTime studentRegisterDeadline;
+    static List<Student> registeredStudents = new ArrayList<Student>;
+    static List<Company> registeredCompanies = new ArrayList<Company>;
+    static public void changeStudentCGPA(){
         pendingStudentCGPAChanges.cgpa = pendingStudentCGPAChanges.pendingCGPAUpdate
         pendingStudentCGPAChanges.pendingCGPAUpdate = -1;
     }
     
-    public void openStudentRegistrations(){
+    static public void openStudentRegistrations(){
         if(companyOpen == 0 && studentsOpen == 0 && LocalDateTime.now() > companyRegisterDeadline){
             studentsOpen = 1;
             studentRegisterDeadline =LocalDateTime.now();
         }
     }
-    public void openCompanyRegistrations(){
+    static public void openCompanyRegistrations(){
         if(studentsOpen == 0 0 && companyOpen == 0)
         {
             companyRegisterDeadline =LocalDateTime.now();
@@ -187,19 +201,19 @@ class PlacementCell {
         }
 
     }
-    public void getNumberofStudentsRegistered(){
+    static public void getNumberofStudentsRegistered(){
         Student.numberofStudents;
     }
-    public void getNumberofStatusStudents(){
+    static public void getNumberofStatusStudents(){
 
     }
-    public void getStudentDetails(Student stu){
+    static public void getStudentDetails(Student stu){
 
     }
-    public void getAveragePackage(){
+    static public void getAveragePackage(){
 
     }
-    public void getCompanyProcessResults(String companyName){}
+    static public void getCompanyProcessResults(String companyName){}
 
 }
 class FutureBuilder {
@@ -273,7 +287,7 @@ class FutureBuilder {
                 enterCompany(companyList.get(0));
                 break;
             case "3":
-                print(Company.companies);
+                Company.companies.forEach(s-> s.printer());
                 break;
             case "4":
                 return;
@@ -292,13 +306,19 @@ class FutureBuilder {
         String temp = inputter.nextLine();
         switch (temp){
             case "1":
-                comp.updateRole();
+                System.out.println("Enter new role");
+                temp = inputter.nextLine();
+                comp.updateRole(temp);
                 break;
             case "2":
-                comp.updatePackage();
+                System.out.println("Enter new package");
+                double pack = inputter.nextLine().toDouble();
+                comp.updatePackage(pack);
                 break;
             case "3":
-                comp.updateCGPA();
+                System.out.println("Enter new cgpa requirement");
+                double cgpa = inputter.nextLine().toDouble();
+                comp.updateCGPA(cgpa);
                 break;
             case "4":
                 comp.registerToPlacement();
@@ -319,11 +339,12 @@ class FutureBuilder {
             case "1":
                 System.out.println("Enter Student Name");
                 temp = inputter.nextLine();
-                Student.students.removeIf(s -> !(s.name == temp);
+                List<Student> studentList = Student.students
+                studentList.removeIf(s -> !(s.name == temp);
                 System.out.println("Enter Roll No.");
                 temp = inputter.nextLine();
-                Student.students.removeIf(s -> !(s.rollNo == int(temp));
-
+                studentList.removeIf(s -> !(s.rollNo == int(temp));
+                enterStudent(studentList.get(0));
                 break;
             case "2":
                 int roll;
@@ -404,21 +425,41 @@ class FutureBuilder {
         String temp = inputter.nextLine();
         switch (temp){
             case "1":
+                PlacementCell.openStudentRegistrations();
                 break;
             case "2":
+                PlacementCell.openCompanyRegistrations();
                 break;
             case "3":
+                PlacementCell.getNumberofStudentsRegistered();
                 break;
             case "4":
+                PlacementCell.getNumberofCompaniesRegistered();
                 break;
             case "5":
-
+                PlacementCell.getNumberofOfferedStudents();
+                PlacementCell.getNumberofUnofferedStudents();
+                PlacementCell.getNumberofBlockedStudents();
                 break;
             case "6":
+                System.out.println("Enter Student Name");
+                temp = inputter.nextLine();
+                List<Student> studentList = Student.students
+                studentList.removeIf(s -> !(s.name == temp);
+                System.out.println("Enter Roll No.");
+                temp = inputter.nextLine();
+                studentList.removeIf(s -> !(s.rollNo == int(temp));
+                studentList.get(0).printer();
                 break;
             case "7":
+                System.out.println("Enter Company Name");
+                temp = inputter.nextLine();
+                List<Company> companyList = Company.companies
+                companyList.removeIf(s -> !(s.name == temp);
+                companyList.get(0).printer();
                 break;
             case "8":
+                PlacementCell.totalOffers
                 break;
             case "9":
                 break;
