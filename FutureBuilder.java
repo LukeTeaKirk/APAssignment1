@@ -14,6 +14,7 @@ class Offers {
 class Student {
     static int numberofStudents = 0;
     static public List<Student> students = new ArrayList<Students>;
+
     String name;
     int rollNo;
     int exitFlag = 0;
@@ -25,6 +26,8 @@ class Student {
     int registered = 0;
     int currentHighestCTC = 0;
     int numberOfOffers = 0;
+    LocalDateTime registerDateTime;
+
     void Student(int roll, String name, int cgpa, String branch){
         this.rollNo = roll;
         this.name = name;
@@ -37,6 +40,11 @@ class Student {
         comp.registeredStudents.add(this);
         this.registered = 1;
         this.status = "applied";
+    }
+    public void registerToPlacement(){
+        PlacementCell.registeredStudents.add(this);
+        this.registered = 1;
+        this.registerDateTime = LocalDateTime.now();
     }
     public void getAllAvailableCompanies(){
         List<Company> availableCompanies = Company.companies;
@@ -88,6 +96,7 @@ class Student {
 class Company {
     static int numberOfCompanies = 0;
     static public List<Company> companies = new ArrayList<Company>;
+
     List<Student> registeredStudents = new ArrayList<Student>;
     List<Student> selectedStudents = new ArrayList<Student>;
     List<Student> acceptedOfferStudents = new ArrayList<Student>;
@@ -96,18 +105,29 @@ class Company {
     double cgpaCriteria;
     LocalDateTime registrationDateTime;
     String role;
-    void Company(int package, double cgpaCriteria, String name){
+    int registered = 0;
+
+    void Company(double package, double cgpaCriteria, String name, String role){
         this.registrationDateTime = LocalDateTime.now();
         this.package = package;
         this.cgpaCriteria = cgpaCriteria;
         this.name=name;
+        this.role=role;
         companies.add(this)
         numberOfCompanies += 1;
     }
+
+    void registerToPlacement(){
+        this.registrationDateTime = LocalDateTime.now();
+        PlacementCell.registeredCompanies.add(this);
+        this.registered = 1;
+    }
+
     void randomizer(){
         Random random= new Random();  
         return random.nextBoolean();  
     }
+
     void selectedStudents(){
         if(PlacementCell.studentsOpen == 0){
             this.selectedStudents = this.registeredStudents.removeIf(s -> arOffer(s.comp));
@@ -116,19 +136,23 @@ class Company {
             }
         }
     }
+
     void getSelectedStudents(){
         selectedStudents.print();
     }
     void updateCGPA(double cgpa){
         this.cgpaCriteria = cgpa;
     }
+
     void updatePackage(double package){
         this.package = package;
     }
+
     void updateRole(String role){
         this.role = role;
     }
     void print(){}
+
     void checkConditions(Student stu){
         if(stu.cgpa >= this.cgpaCriteria && stu.status != "placed" && this.package >= 3*stu.currentHighestCTC){
             return true;
@@ -142,6 +166,8 @@ class PlacementCell {
     static public Student pendingStudentCGPAChanges;
     LocalDateTime companyRegisterDeadline;
     LocalDateTime studentRegisterDeadline;
+    List<Student> registeredStudents = new ArrayList<Student>;
+    List<Company> registeredCompanies = new ArrayList<Company>;
     public void changeStudentCGPA(){
         pendingStudentCGPAChanges.cgpa = pendingStudentCGPAChanges.pendingCGPAUpdate
         pendingStudentCGPAChanges.pendingCGPAUpdate = -1;
@@ -190,6 +216,7 @@ class FutureBuilder {
             modeSelector()
         }
         if(temp == "2"){
+            System.out.println("Bye!");
             return;
         }
         mainApplication();
@@ -202,16 +229,16 @@ class FutureBuilder {
         System.out.println("    4) Return To Main Application");
         temp = inputter.nextLine();
         if(temp == '2'){
-
+            companyMode();
         }
         if(temp == '3'){
-            
+            placementCellMode();
         }
         if(temp == '4'){
             return;
         }
         if(temp == '1'){
-            
+            studentMode();
         }
         modeSelector();
     }
@@ -224,37 +251,145 @@ class FutureBuilder {
         String temp = inputter.nextLine();
         switch (temp){
             case "1":
+                double package;
+                double cgpa;
+                String name;
+                String role;
+                System.out.println("Enter package");
+                package = inputter.nextLine().toDouble();
+                System.out.println("Enter cgpa");
+                cgpa = inputter.nextLine().toDouble();
+                System.out.println("Enter name");
+                name = inputter.nextLine();
+                System.out.println("Enter role");
+                role = inputter.nextLine();
+                new Company(package, cgpa, name, role);
                 break;
             case "2":
+                System.out.println("Enter Company Name");
+                temp = inputter.nextLine();
+                List<Company> companyList = Company.companies;
+                companyList.removeIf(s -> !(s.name == temp);
+                enterCompany(companyList.get(0));
                 break;
             case "3":
+                print(Company.companies);
                 break;
             case "4":
                 return;
                 break;
+        }
+        companyMode();
+
+    }
+    void enterCompany(Company comp){
+        System.out.println("Welcome " + comp.name);
+        System.out.println("    1) Update Role");
+        System.out.println("    2) Update Package");
+        System.out.println("    3) Update CGPA criteria");
+        System.out.println("    4) Register To Institute Drive");
+        System.out.println("    5) Back");
+        String temp = inputter.nextLine();
+        switch (temp){
+            case "1":
+                comp.updateRole();
+                break;
+            case "2":
+                comp.updatePackage();
+                break;
+            case "3":
+                comp.updateCGPA();
+                break;
+            case "4":
+                comp.registerToPlacement();
+                break;
+            case "5":
+                return;
 
         }
-
-
+        enterCompany(comp);
     }
     void studentMode(){
         System.out.println("Choose the Student Query to perform-");
         System.out.println("    1) Enter as a Student(Give Student Name, and Roll No.)");
-        System.out.println("    2) Add students");
+        System.out.println("    2) Add student");
         System.out.println("    3) Back");
         String temp = inputter.nextLine();
         switch (temp){
             case "1":
+                System.out.println("Enter Student Name");
+                temp = inputter.nextLine();
+                Student.students.removeIf(s -> !(s.name == temp);
+                System.out.println("Enter Roll No.");
+                temp = inputter.nextLine();
+                Student.students.removeIf(s -> !(s.rollNo == int(temp));
+
                 break;
             case "2":
+                int roll;
+                String name;
+                double cgpa;
+                String branch
+                System.out.println("Enter Student Name");
+                name = inputter.nextLine();
+                System.out.println("Enter Student Name");
+                cgpa = inputter.nextLine().toDouble();
+                System.out.println("Enter Student Name");
+                branch = inputter.nextLine();
+                System.out.println("Enter Student Name");
+                roll = inputter.nextLine().toInt();
+                new Student(roll, name, cgpa, branch);
                 break;
             case "3":
                 return;
 
         }
-
+        studentMode();
     }
-    void PlacementCellMode(){
+    void enterStudent(Student stu){
+        System.out.println("Welcome " + stu.name);
+        System.out.println("    1) Register For Placement Drive");
+        System.out.println("    2) Register For Company");
+        System.out.println("    3) Get All available companies");
+        System.out.println("    4) Get Current Status");
+        System.out.println("    5) Update CGPA");
+        System.out.println("    6) Accept offer");
+        System.out.println("    7) Reject offer");
+        System.out.println("    8) Back");
+        String temp = inputter.nextLine();
+        switch (temp){
+            case "1":
+                stu.registerToPlacement();
+                break;
+            case "2":
+                System.out.println("Enter Company Name");
+                temp = inputter.nextLine();
+                List<Company> companyList = Company.companies;
+                companyList.removeIf(s -> !(s.name == temp);
+                stu.registerForCompany(companyList.get(0));
+                break;
+            case "3":
+                stu.getAllAvailableCompanies();
+                break;
+            case "4":
+                stu.getCurrentStatus();
+                break;
+            case "5":
+                stu.updateCGPA("");
+                break;
+            case "6":
+                stu.accept();
+                break;
+            case "7":
+                stu.reject();
+                break;
+            case "8":
+                return;
+
+        }
+        enterStudent(stu);
+    }
+    void placementCellMode(){
         System.out.println("Welcome to IIITD Placement Cell");
         System.out.println("    1) Open Student Registrations");
         System.out.println("    2) Open Company Registrations");
@@ -292,8 +427,6 @@ class FutureBuilder {
                 break;
 
         }
-
+        placementCellMode();
     }
-
-    
 }
