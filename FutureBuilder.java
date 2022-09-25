@@ -3,19 +3,28 @@ import java.util.Iterator;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
-Scanner inputter = new Scanner(System.in);
+import java.util.Random;  
 
+
+Scanner inputter = new Scanner(System.in);
+class Offers {
+    Company comp;
+    int CTC;
+}
 class Student {
     static int numberofStudents = 0;
     static public List<Student> students = new ArrayList<Students>;
     String name;
     int rollNo;
+    int exitFlag = 0;
     int cgpa;
+    public List<Offers> rcvdOffers = new ArrayList<Offers>;
     int pendingCGPAUpdate = -1;
     String branch;
     String status = "not-applied";
-    Company companyOffered;
+    int registered = 0;
     int currentHighestCTC = 0;
+    int numberOfOffers = 0;
     void Student(int roll, String name, int cgpa, String branch){
         this.rollNo = roll;
         this.name = name;
@@ -24,56 +33,104 @@ class Student {
         students.add(this);
         numberofStudents += 1;
     }
-    private void registerForCompany(Company comp){
+    public void registerForCompany(Company comp){
         comp.registeredStudents.add(this);
-        status = "applied";
+        this.registered = 1;
+        this.status = "applied";
     }
-    private void getAllAvailableCompanies(){
+    public void getAllAvailableCompanies(){
         List<Company> availableCompanies = Company.companies;
         availableCompanies.removeIf(s -> !s.checkConditions(this));
-
     }
-    private void getCurrentStatus(){
+    public void getCurrentStatus(){
         System.out.println("Student Status: " + status);
         if(status == "offered"){
             this.companyOffered.print();
         }
     }
-    private void requestUpdateCGPA(int newCGPA){
+    public void requestUpdateCGPA(int newCGPA){
         this.pendingCGPAUpdate = newCGPA;
         PlacementCell.pendingStudentCGPAChanges = this;
         PlacementCell.changeStudentCGPA();
     }
-    private void arOffer(){
+    private void arOffer(Company comp){
+        String temp = inputter.nextLine();
+        if(this.exitFlag == 1){
+            return false;
+        }
+        if(this.status == "accepted"){
+            return true;
+        }
+        if(temp == "accept"){
+            this.status = "accepted";
+            comp.acceptedOfferStudents.add(this);
+            return false;
+        }
+        if(temp == "reject"){
+            comp.rejectedOfferStudents.add(this);
+            return true;
+        }
+        if(temp == "exit"){
+            this.exitFlag = 1;
+            return false;
+        }
 
     }
-    public void print(){}
+    public void acceptreject(){
+        rcvdOffers.removeIf(s -> arOffer(s.comp));
+        this.exitFlag = 0;
+    }
+
+    public void print(){
+
+    }
 }
 class Company {
     static int numberOfCompanies = 0;
     static public List<Company> companies = new ArrayList<Company>;
     List<Student> registeredStudents = new ArrayList<Student>;
     List<Student> selectedStudents = new ArrayList<Student>;
-    int package;
-    int cgpaCriteria;
+    List<Student> acceptedOfferStudents = new ArrayList<Student>;
+    List<Student> rejectedOfferStudents = new ArrayList<Student>;
+    double package;
+    double cgpaCriteria;
     LocalDateTime registrationDateTime;
-    void Company(int package, int cgpaCriteria, String name){
+    String role;
+    void Company(int package, double cgpaCriteria, String name){
         this.registrationDateTime = LocalDateTime.now();
         this.package = package;
-        this.cgpaCriteria =cgpaCriteria;
+        this.cgpaCriteria = cgpaCriteria;
         this.name=name;
         companies.add(this)
         numberOfCompanies += 1;
     }
-    void getSelectedStudents(){
-        registeredStudents.print();
+    void randomizer(){
+        Random random= new Random();  
+        return random.nextBoolean();  
     }
-    void updateRPCGPACriteria(){
-
+    void selectedStudents(){
+        if(PlacementCell.studentsOpen == 0){
+            this.selectedStudents = this.registeredStudents.removeIf(s -> arOffer(s.comp));
+            if(len(this.selectedStudents == 0)){
+                this.selectedStudents.add(registeredStudents.get(0));
+            }
+        }
+    }
+    void getSelectedStudents(){
+        selectedStudents.print();
+    }
+    void updateCGPA(double cgpa){
+        this.cgpaCriteria = cgpa;
+    }
+    void updatePackage(double package){
+        this.package = package;
+    }
+    void updateRole(String role){
+        this.role = role;
     }
     void print(){}
     void checkConditions(Student stu){
-        if(stu.cgpa >= cgpaCriteria && stu.status != "placed" && package >= 3*stu.currentHighestCTC){
+        if(stu.cgpa >= this.cgpaCriteria && stu.status != "placed" && this.package >= 3*stu.currentHighestCTC){
             return true;
         }
         return false;
