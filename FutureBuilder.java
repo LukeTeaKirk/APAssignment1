@@ -12,6 +12,7 @@ class Offers {
     double CTC;
     Student stu;
     int accepted = 0;
+    int rejected = 0;
     void Offers(Company comp, double CTC, Student stu){
         this.comp = comp;
         this.stu = stu;
@@ -27,9 +28,9 @@ class Student {
     String name;
     int rollNo;
     int exitFlag = 0;
-    int cgpa;
+    double cgpa;
     public List<Offers> rcvdOffers = new ArrayList<Offers>;
-    int pendingCGPAUpdate = -1;
+    double pendingCGPAUpdate = -1;
     String branch;
     String status = "not-applied";
     int registered = 0;
@@ -43,7 +44,7 @@ class Student {
         System.out.println("Student branch = " + this.branch);
 
     }
-    void Student(int roll, String name, int cgpa, String branch){
+    void Student(int roll, String name, double cgpa, String branch){
         this.rollNo = roll;
         this.name = name;
         this.cgpa = cgpa;
@@ -52,14 +53,20 @@ class Student {
         numberofStudents += 1;
     }
     public void registerForCompany(Company comp){
-        comp.registeredStudents.add(this);
-        this.registered = 1;
-        this.status = "applied";
+        PlacementCell.updateTime();
+        if(PlacementCell.companyOpen){
+            comp.registeredStudents.add(this);
+            this.registered = 1;
+            this.status = "applied";    
+        }
     }
     public void registerToPlacement(){
-        PlacementCell.registeredStudents.add(this);
-        this.registered = 1;
-        this.registerDateTime = LocalDateTime.now();
+        PlacementCell.updateTime();
+        if(PlacementCell.studentsOpen){
+            PlacementCell.registeredStudents.add(this);
+            this.registered = 1;
+            this.registerDateTime = LocalDateTime.now();            
+        }
     }
     public void getAllAvailableCompanies(){
         List<Company> availableCompanies = Company.companies;
@@ -69,43 +76,33 @@ class Student {
         System.out.println("Student Status: " + status);
         if(status == "offered"){
             this.companyOffered.print();
+            System.out.println("Please accept the offer");
         }
     }
-    public void requestUpdateCGPA(int newCGPA){
+    public void requestUpdateCGPA(double newCGPA){
         this.pendingCGPAUpdate = newCGPA;
         PlacementCell.pendingStudentCGPAChanges = this;
         PlacementCell.changeStudentCGPA();
     }
     private void arOffer(Company comp){
-        String temp = inputter.nextLine();
-        if(this.exitFlag == 1){
-            return false;
-        }
-        if(this.status == "accepted"){
-            return true;
-        }
-        if(temp == "accept"){
-            this.status = "accepted";
-            comp.acceptedOfferStudents.add(this);
-            return false;
-        }
-        if(temp == "reject"){
-            comp.rejectedOfferStudents.add(this);
-            return true;
-        }
-        if(temp == "exit"){
-            this.exitFlag = 1;
-            return false;
+
+    }
+    public void reject(){
+        Offer off = rcvdOffers.get(rcvdOffers.size() -1);
+        off.comp.rejectedOfferStudents.add(this);
+        off.rejected = "1";
+        rcvdOffers.remove(rcvdOffers.size() -1);
+        if(rcvdOffers.size() == 0){
+            this.status = "blocked";
         }
 
     }
-    public void acceptreject(){
-        rcvdOffers.removeIf(s -> arOffer(s.comp));
+    public void accept(){
+        Offer off = rcvdOffers.get(rcvdOffers.size() -1);
+        off.comp.acceptedOfferStudents.add(this);
+        this.status = "accepted";
+        off.accepted = 1;
         this.exitFlag = 0;
-    }
-
-    public void print(){
-
     }
 }
 
@@ -134,9 +131,13 @@ class Company {
     }
 
     void registerToPlacement(){
-        this.registrationDateTime = LocalDateTime.now();
-        PlacementCell.registeredCompanies.add(this);
-        this.registered = 1;
+        PlacementCell.updateTime();
+        if(PlacementCell.companyOpen){
+            this.registrationDateTime = LocalDateTime.now();
+            PlacementCell.registeredCompanies.add(this);
+            this.registered = 1;    
+        }
+        
     }
 
     void randomizer(){
@@ -145,6 +146,7 @@ class Company {
     }
 
     void selectStudents(){
+        PlacementCell.updateTime();
         if(PlacementCell.studentsOpen == 0){
             this.selectedStudents = this.registeredStudents.removeIf(s -> arOffer(s.comp));
             if(len(this.selectedStudents == 0)){
@@ -192,6 +194,14 @@ class PlacementCell {
     static LocalDateTime studentRegisterDeadline;
     static List<Student> registeredStudents = new ArrayList<Student>;
     static List<Company> registeredCompanies = new ArrayList<Company>;
+    static public void updateTime(){
+        if(companyOpen == 1 && LocalDateTime.now() > companyRegisterDeadline){
+            companyOpen = 0;
+        }
+        if(studentsOpen == 1 && LocalDateTime.now() > studentRegisterDeadline){
+            studentsOpen = 0;
+        }
+    }
     static public void changeStudentCGPA(){
         pendingStudentCGPAChanges.cgpa = pendingStudentCGPAChanges.pendingCGPAUpdate
         pendingStudentCGPAChanges.pendingCGPAUpdate = -1;
@@ -211,19 +221,48 @@ class PlacementCell {
         }
 
     }
+    static public void getNumberofOfferedStudents(){
+        int temp = 0;
+        registeredStudents.forEach{s => 
+            if(s.status == "offered")
+                {temp+=1}
+            };
+        System.out.println("Number of Offered Students = " + temp);
+    }
+
+    static public void getNumberofOfferedStudents(){
+        int temp = 0;
+        registeredStudents.forEach{s => 
+            if(s.status == "unoffered")
+                {temp+=1}
+            };
+        System.out.println("Number of Unoffered Students = " + temp);
+
+    }
+
+    static public void getNumberofOfferedStudents(){
+        int temp = 0;
+        registeredStudents.forEach{s => 
+            if(s.status == "blocked")
+                {temp+=1}
+            };
+        System.out.println("Number of blocked Students = " + temp);
+
+    }
+
     static public void getNumberofStudentsRegistered(){
-        Student.numberofStudents;
+        System.out.println("Number of Students Registered: " + registeredStudents.size());
     }
-    static public void getNumberofStatusStudents(){
 
-    }
     static public void getStudentDetails(Student stu){
-
+        stu.printer();
     }
     static public void getAveragePackage(){
 
     }
-    static public void getCompanyProcessResults(String companyName){}
+    static public void getCompanyProcessResults(String companyName){
+
+    }
 
 }
 
@@ -470,9 +509,16 @@ class FutureBuilder {
                 companyList.get(0).printer();
                 break;
             case "8":
-                PlacementCell.totalOffers
+                double packages = 0;
+                int counter = 0;
+                PlacementCell.totalOffers.forEach{s =>
+                    packages += s.CTC;
+                    counter += 1;
+                }
+                System.Out.println("Average Package  = " packages/counter);
                 break;
             case "9":
+
                 break;
             case "10":
                 return;
