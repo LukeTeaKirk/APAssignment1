@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
 Scanner inputter = new Scanner(System.in);
+
 class Student {
     static int numberofStudents = 0;
     static public List<Student> students = new ArrayList<Students>;
@@ -23,11 +24,14 @@ class Student {
         students.add(this);
         numberofStudents += 1;
     }
-    private void registerForCompany(){
+    private void registerForCompany(Company comp){
+        comp.registeredStudents.add(this);
         status = "applied";
     }
     private void getAllAvailableCompanies(){
-        Company.companies;
+        List<Company> availableCompanies = Company.companies;
+        availableCompanies.removeIf(s -> !s.checkConditions(this));
+
     }
     private void getCurrentStatus(){
         System.out.println("Student Status: " + status);
@@ -48,6 +52,8 @@ class Student {
 class Company {
     static int numberOfCompanies = 0;
     static public List<Company> companies = new ArrayList<Company>;
+    List<Student> registeredStudents = new ArrayList<Student>;
+    List<Student> selectedStudents = new ArrayList<Student>;
     int package;
     int cgpaCriteria;
     LocalDateTime registrationDateTime;
@@ -57,13 +63,21 @@ class Company {
         this.cgpaCriteria =cgpaCriteria;
         this.name=name;
         companies.add(this)
+        numberOfCompanies += 1;
     }
     void getSelectedStudents(){
+        registeredStudents.print();
     }
     void updateRPCGPACriteria(){
+
     }
     void print(){}
-    static getAllAvailableCompanies(){}
+    void checkConditions(Student stu){
+        if(stu.cgpa >= cgpaCriteria && stu.status != "placed" && package >= 3*stu.currentHighestCTC){
+            return true;
+        }
+        return false;
+    }
 }
 class PlacementCell {
     int companyOpen = 0;
@@ -179,7 +193,6 @@ class FutureBuilder {
                 break;
             case "3":
                 return;
-                break;
 
         }
 
@@ -218,7 +231,7 @@ class FutureBuilder {
             case "9":
                 break;
             case "10":
-                modeSelector();
+                return;
                 break;
 
         }
